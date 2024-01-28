@@ -1,15 +1,15 @@
 //
-//  PlaylistCollectionViewCell.swift
+//  NewReleasedAlbumCollectionViewCell.swift
 //  SpotifyClone
 //
-//  Created by BearyCode on 17.01.24.
+//  Created by BearyCode on 19.11.23.
 //
 
 import UIKit
 import SDWebImage
 
-class PlaylistCollectionViewCell: UICollectionViewCell {
-    static let identifier = "PlaylistCollectionViewCell"
+class NewReleasedAlbumCollectionViewCell: UICollectionViewCell {
+    static let identifier = "NewReleasedAlbumCollectionViewCell"
     
     private let containerView: UIView = {
         let view = UIView()
@@ -26,11 +26,22 @@ class PlaylistCollectionViewCell: UICollectionViewCell {
         return imageView
     }()
     
-    private let playlistNameLabel: UILabel = {
+    private let albumNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Content"
         label.font = .systemFont(ofSize: 15, weight: .regular)
         label.textColor = .label
+        label.numberOfLines = 0
+        label.textAlignment = .left
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let artistLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Album • Artist"
+        label.font = .systemFont(ofSize: 15, weight: .regular)
+        label.textColor = .systemGray
         label.numberOfLines = 0
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -49,7 +60,8 @@ class PlaylistCollectionViewCell: UICollectionViewCell {
         super.layoutSubviews()
         setupImageView()
         setupContainerView()
-        setupPlaylistNameLabel()
+        setupAlbumNameLabel()
+        setupArtistLabel()
     }
     
     private func setupImageView() {
@@ -74,19 +86,30 @@ class PlaylistCollectionViewCell: UICollectionViewCell {
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
     }
     
-    private func setupPlaylistNameLabel() {
-        contentView.addSubview(playlistNameLabel)
+    private func setupAlbumNameLabel() {
+        contentView.addSubview(albumNameLabel)
         
-        let top = playlistNameLabel.topAnchor.constraint(equalTo: containerView.topAnchor)
-        let trailing = playlistNameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
-        let bottom = playlistNameLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
-        let leading = playlistNameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
+        let top = albumNameLabel.topAnchor.constraint(equalTo: containerView.topAnchor)
+        let trailing = albumNameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+        let leading = albumNameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
+        
+        NSLayoutConstraint.activate([top, trailing, leading])
+    }
+    
+    private func setupArtistLabel() {
+        contentView.addSubview(artistLabel)
+        
+        let top = artistLabel.topAnchor.constraint(equalTo: albumNameLabel.bottomAnchor)
+        let trailing = artistLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+        let bottom = artistLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        let leading = artistLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
         
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
     }
     
-    public func setContent(title: String, coverImageURL: String?) {
-        playlistNameLabel.text = title
+    public func setContent(title: String, artist: String, coverImageURL: String?) {
+        albumNameLabel.text = title
+        artistLabel.text = "Album • \(artist)"
         
         if let coverImageURL = coverImageURL {
             let url = URL(string: coverImageURL)

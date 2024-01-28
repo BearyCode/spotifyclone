@@ -8,16 +8,16 @@
 import UIKit
 
 enum LibrarySectionType {
+    case savedPlaylists(savedPlaylists: [Playlist])
     case savedArtists(savedArtists: [Artist])
     case savedAlbums(savedAlbums: [Album])
-    case savedPlaylists(savedPalylists: [Playlist])
 }
 
 class LibraryViewController: UIViewController {
     
-    private var albums = [Album]()
     private var playlists = [Playlist]()
     private var artists = [Artist]()
+    private var albums = [Album]()
     
     private var sections = [LibrarySectionType]()
     
@@ -28,7 +28,9 @@ class LibraryViewController: UIViewController {
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(LibraryTableViewCell.self, forCellReuseIdentifier: LibraryTableViewCell.identifier)
+        tableView.register(LibraryPlaylistTableViewCell.self, forCellReuseIdentifier: LibraryPlaylistTableViewCell.identifier)
+        tableView.register(LibraryArtistTableViewCell.self, forCellReuseIdentifier: LibraryArtistTableViewCell.identifier)
+        tableView.register(LibraryAlbumTableViewCell.self, forCellReuseIdentifier: LibraryAlbumTableViewCell.identifier)
         return tableView
     }()
     
@@ -202,44 +204,69 @@ class LibraryViewController: UIViewController {
     }
     
     private func fetchData() {
-        NetworkManager.shared.getUserSavedArtists { result in
-            DispatchQueue.main.async {
+        
+        var usersPlaylists = [Playlist]()
+        var usersArtists = [Artist]()
+        var usersAlbums = [Album]()
+        
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        dispatchGroup.enter()
+        dispatchGroup.enter()
+        
+        NetworkManager.shared.getUserSavedPlaylists { result in
+            defer {
+                dispatchGroup.leave()
+            }
                 switch result {
-                case .success(let requestedArtists):
-//                    self.artists = requestedArtists.
-                    self.tableView.reloadData()
+                case .success(let requestedPlaylists):
+                    usersPlaylists = requestedPlaylists
                 case .failure(let error):
-                    print("Artist: \(error)")
                     print(error.localizedDescription)
                 }
+        }
+        
+        NetworkManager.shared.getUserSavedArtists { result in
+            defer {
+                dispatchGroup.leave()
             }
+            
+            switch result {
+                case .success(let requestedArtists):
+                    usersArtists = requestedArtists
+                case .failure(let error):
+                    print(error.localizedDescription)
+                }
+            
         }
         
         NetworkManager.shared.getUserSavedAlbums { result in
-            DispatchQueue.main.async {
+            defer {
+                dispatchGroup.leave()
+            }
                 switch result {
                 case .success(let requestedAlbums):
-                    self.albums = requestedAlbums
-                    self.tableView.reloadData()
+                    usersAlbums = requestedAlbums
                 case .failure(let error):
-                    print("Album: \(error)")
                     print(error.localizedDescription)
                 }
-            }
         }
         
-        NetworkManager.shared.getUserSavedPlaylists { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let requestedPlaylists):
-                    self.playlists = requestedPlaylists
-                    self.tableView.reloadData()
-                case .failure(let error):
-                    print("Playlist: \(error)")
-                    print(error.localizedDescription)
-                }
-            }
+        dispatchGroup.notify(queue: .main) {
+            self.configureSectionsData(loadedPlaylists: usersPlaylists, loadedArtists: usersArtists, loadedAlbums: usersAlbums)
         }
+    }
+    
+    private func configureSectionsData(loadedPlaylists: [Playlist], loadedArtists: [Artist], loadedAlbums: [Album]) {
+        playlists = loadedPlaylists
+        artists = loadedArtists
+        albums = loadedAlbums
+        
+        sections.append(.savedPlaylists(savedPlaylists: loadedPlaylists))
+        sections.append(.savedArtists(savedArtists: loadedArtists))
+        sections.append(.savedAlbums(savedAlbums: loadedAlbums))
+        
+        tableView.reloadData()
     }
 }
 
@@ -256,30 +283,49 @@ extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
         let selectedSection = sections[section]
         
         switch selectedSection {
+        case .savedPlaylists(let playlists):
+            return playlists.count
         case .savedAlbums(let albums):
             return albums.count
         case .savedArtists(let artists):
             return artists.count
-        case .savedPlaylists(let playlists):
-            return playlists.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: LibraryTableViewCell.identifier, for: indexPath) as! LibraryTableViewCell
-        cell.selectionStyle = .none
-        
         switch sections[indexPath.section] {
-        case .savedArtists(let artists):
-            cell.setContent(imageURL: artists[indexPath.row].images?.first?.url, albumName: artists[indexPath.row].name, artistName: "Artist")
-        case .savedAlbums(savedAlbums: let albums):
-            cell.setContent(imageURL: albums[indexPath.row].images.first?.url, albumName: albums[indexPath.row].name, artistName: albums[indexPath.row].artists.first?.name)
-        case .savedPlaylists(let playlists):
-            cell.setContent(imageURL: playlists[indexPath.row].images.first?.url, albumName: playlists[indexPath.row].name, artistName: playlists[indexPath.row].owner.display_name)
-        }
-        
-        return cell
+            case .savedPlaylists(let playlists):
+                let cell = tableView.dequeueReusableCell(withIdentifier: LibraryPlaylistTableViewCell.identifier, for: indexPath) as! LibraryPlaylistTableViewCell
+            cell.setContent(imageURL: playlists[indexPath.row].images.first?.url, playlistName: playlists[indexPath.row].name, numberOfSongs: playlists[indexPath.row].tracks.total)
+                cell.selectionStyle = .none
+                return cell
+            case .savedArtists(let artists):
+                let cell = tableView.dequeueReusableCell(withIdentifier: LibraryArtistTableViewCell.identifier, for: indexPath) as! LibraryArtistTableViewCell
+                cell.setContent(imageURL: artists[indexPath.row].images?.first?.url, artistName: artists[indexPath.row].name)
+                cell.selectionStyle = .none
+                return cell
+            case .savedAlbums(savedAlbums: let albums):
+                let cell = tableView.dequeueReusableCell(withIdentifier: LibraryAlbumTableViewCell.identifier, for: indexPath) as! LibraryAlbumTableViewCell
+                cell.setContent(imageURL: albums[indexPath.row].images.first?.url, albumTitle: albums[indexPath.row].name, artistName: albums[indexPath.row].artists.first?.name)
+                cell.selectionStyle = .none
+                return cell
+            }
     }
     
-    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        switch sections[indexPath.section] {
+        case .savedPlaylists(savedPlaylists: let playlists):
+            let vc = PlaylistViewController(playlist: playlists[indexPath.row])
+            vc.modalPresentationStyle = .popover
+            present(vc, animated: true)
+        case .savedArtists(savedArtists: let artists):
+            let vc = ArtistViewController()
+            vc.modalPresentationStyle = .popover
+            present(vc, animated: true)
+        case .savedAlbums(savedAlbums: let albums):
+            let vc = AlbumViewController(album: albums[indexPath.row])
+            vc.modalPresentationStyle = .popover
+            present(vc, animated: true)
+        }
+    }
 }

@@ -225,7 +225,7 @@ class PlaylistViewController: UIViewController {
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
     }
     
-    private func getAllTracks() {
+    private func fetchData() {
         NetworkManager.shared.getPlaylistTracks(playlist: playlist) { result in
             DispatchQueue.main.async {
                 switch result {
@@ -234,6 +234,7 @@ class PlaylistViewController: UIViewController {
                     self.tableView.reloadData()
                 case .failure(let error):
                     print(error.localizedDescription)
+                    print(error)
                 }
             }
         }
@@ -242,6 +243,7 @@ class PlaylistViewController: UIViewController {
     private func setContent() {
         artistLabel.text = playlist.owner.display_name
         albumTitleLabel.text = playlist.name
+        typeYearLabel.text = "Playlist"
         
         
         if let coverImageURL = playlist.images.first?.url {
@@ -249,7 +251,7 @@ class PlaylistViewController: UIViewController {
             coverImageView.sd_setImage(with: url)
         }
         
-        getAllTracks()
+        fetchData()
     }
 }
 

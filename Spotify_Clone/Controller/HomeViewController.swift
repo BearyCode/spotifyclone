@@ -143,8 +143,8 @@ class HomeViewController: UIViewController {
     
     private func setupCollectionView() {
         collectionView.register(CollectionHeaderReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CollectionHeaderReusableView.identifier)
-        collectionView.register(PlaylistCollectionViewCell.self, forCellWithReuseIdentifier: PlaylistCollectionViewCell.identifier)
-        collectionView.register(AlbumCollectionViewCell.self, forCellWithReuseIdentifier: AlbumCollectionViewCell.identifier)
+        collectionView.register(FeaturedPlaylistCollectionViewCell.self, forCellWithReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier)
+        collectionView.register(NewReleasedAlbumCollectionViewCell.self, forCellWithReuseIdentifier: NewReleasedAlbumCollectionViewCell.identifier)
         collectionView.register(RecommandedTracksCollectionViewCell.self, forCellWithReuseIdentifier: RecommandedTracksCollectionViewCell.identifier)
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -337,11 +337,11 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         switch sections[indexPath.section] {
         case .featuredPlaylists(let playlists):
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PlaylistCollectionViewCell.identifier, for: indexPath) as! PlaylistCollectionViewCell
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier, for: indexPath) as! FeaturedPlaylistCollectionViewCell
             cell.setContent(title: playlists[indexPath.row].name, coverImageURL: playlists[indexPath.row].images.first?.url)
             return cell
         case .newReleases(let albums):
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AlbumCollectionViewCell.identifier, for: indexPath) as! AlbumCollectionViewCell
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NewReleasedAlbumCollectionViewCell.identifier, for: indexPath) as! NewReleasedAlbumCollectionViewCell
             cell.setContent(title: albums[indexPath.row].name, artist: albums[indexPath.row].artists[0].name, coverImageURL: albums[indexPath.row].images.first?.url)
             return cell
         case .recommendedTracks(let tracks):

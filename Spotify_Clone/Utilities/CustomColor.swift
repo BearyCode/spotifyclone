@@ -1,5 +1,5 @@
 //
-//  Extensions.swift
+//  CustomColor.swift
 //  SpotifyClone
 //
 //  Created by BearyCode on 03.01.24.

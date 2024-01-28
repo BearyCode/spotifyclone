@@ -14,4 +14,5 @@ struct Playlist: Codable {
     let images: [Image]
     let name: String
     let owner: Owner
+    let tracks: LibraryPlaylistDetailsResponse
 }

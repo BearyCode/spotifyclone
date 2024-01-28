@@ -9,7 +9,7 @@ import UIKit
 
 class SongListTableViewCell: UITableViewCell {
 
-    static let identifier = "LibraryTableViewCell"
+    static let identifier = "SongListTableViewCell"
     
     private let likeImageView: UIImageView = {
         let imageView = UIImageView()

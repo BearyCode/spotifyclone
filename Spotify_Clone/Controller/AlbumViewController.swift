@@ -241,9 +241,21 @@ class AlbumViewController: UIViewController {
     }
     
     private func setContent() {
+        let correctedType: String = {
+            
+            guard let firstChar = album.album_type.first else {
+                return ""
+            }
+            
+            var endString = album.album_type
+            endString.removeFirst()
+            
+            return firstChar.uppercased() + endString
+        }()
+        
         artistLabel.text = album.artists.first?.name
         albumTitleLabel.text = album.name
-        typeYearLabel.text = "\(album.album_type) • \(album.release_date)"
+        typeYearLabel.text = "\(correctedType) • \(album.release_date)"
         
         if let coverImageURL = album.images.first?.url {
             let url = URL(string: coverImageURL)

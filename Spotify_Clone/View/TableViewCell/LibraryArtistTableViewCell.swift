@@ -1,5 +1,5 @@
 //
-//  LibraryTableViewCell.swift
+//  LibraryArtistTableViewCell.swift
 //  SpotifyClone
 //
 //  Created by BearyCode on 21.12.23.
@@ -8,11 +8,9 @@
 import UIKit
 import SDWebImage
 
-class LibraryTableViewCell: UITableViewCell {
-    static let identifier = "LibraryTableViewCell"
-    
-    public var isAlbum: Bool?
-    
+class LibraryArtistTableViewCell: UITableViewCell {
+    static let identifier = "LibraryArtistTableViewCell"
+        
     private let containerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -20,7 +18,7 @@ class LibraryTableViewCell: UITableViewCell {
         return view
     }()
     
-    private let artistCoverImageView: UIImageView = {
+    private let artistImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "person.crop.circle.fill")
         imageView.tintColor = .label
@@ -30,7 +28,7 @@ class LibraryTableViewCell: UITableViewCell {
         return imageView
     }()
     
-    private let artistAlbumLabel: UILabel = {
+    private let artistNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Artist Album"
         label.font = .systemFont(ofSize: 20, weight: .semibold)
@@ -42,7 +40,7 @@ class LibraryTableViewCell: UITableViewCell {
     
     private let typeLabel: UILabel = {
         let label = UILabel()
-        label.text = "Album • Artist"
+        label.text = "Artist"
         label.font = .systemFont(ofSize: 15, weight: .regular)
         label.textColor = .systemGray
         label.numberOfLines = 0
@@ -75,19 +73,16 @@ class LibraryTableViewCell: UITableViewCell {
     }
     
     private func setupImageView() {
-        contentView.addSubview(artistCoverImageView)
+        contentView.addSubview(artistImageView)
         
-        if let isAlbum = isAlbum {
-            artistCoverImageView.image = isAlbum ? UIImage(systemName: "person.crop.square") : UIImage(systemName: "person.crop.circle.fill")
-            artistCoverImageView.layer.cornerRadius = isAlbum ? 0 : (contentView.frame.height-10)/2
-        }
-        
-        let width = artistCoverImageView.widthAnchor.constraint(equalTo: artistCoverImageView.heightAnchor)
-        let top = artistCoverImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5)
-        let bottom = artistCoverImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
-        let leading = artistCoverImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10)
+        let width = artistImageView.widthAnchor.constraint(equalTo: artistImageView.heightAnchor)
+        let top = artistImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5)
+        let bottom = artistImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
+        let leading = artistImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([width, top, bottom, leading])
+        
+        artistImageView.layer.cornerRadius = (contentView.frame.height-10)/2
     }
     
     private func setupContainerView() {
@@ -96,33 +91,23 @@ class LibraryTableViewCell: UITableViewCell {
         let top = containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5)
         let trailing = containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         let bottom = containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
-        let leading = containerView.leadingAnchor.constraint(equalTo: artistCoverImageView.trailingAnchor, constant: 10)
+        let leading = containerView.leadingAnchor.constraint(equalTo: artistImageView.trailingAnchor, constant: 10)
 
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
         
-        containerView.addSubview(artistAlbumLabel)
+        containerView.addSubview(artistNameLabel)
         containerView.addSubview(typeLabel)
     }
 
     private func setupArtistAlbumLabel() {
-        
-        if let isAlbum = isAlbum {
-            artistAlbumLabel.text = isAlbum ? "Album" : "Artist"
-        }
-        
-        let centerY = artistAlbumLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -10)
-        let trailing = artistAlbumLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
-        let leading = artistAlbumLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
+        let centerY = artistNameLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -10)
+        let trailing = artistNameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+        let leading = artistNameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
         
         NSLayoutConstraint.activate([centerY, trailing, leading])
     }
     
     private func setupTypeLabel() {
-        
-        if let isAlbum = isAlbum {
-            typeLabel.text = isAlbum ? "Album • Artist" : "Artist"
-        }
-        
         let centerY = typeLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: 10)
         let trailing = typeLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
         let bottom = typeLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
@@ -131,12 +116,12 @@ class LibraryTableViewCell: UITableViewCell {
         NSLayoutConstraint.activate([centerY, trailing, bottom, leading])
     }
     
-    public func setContent(imageURL: String?, albumName: String, artistName: String?) {
-        artistAlbumLabel.text = albumName
-        typeLabel.text = "Album • \(artistName ?? "")"
+    public func setContent(imageURL: String?, artistName: String?) {
+        artistNameLabel.text = artistName ?? ""
+        
         if let imageURL = imageURL {
             let url = URL(string: imageURL)
-            artistCoverImageView.sd_setImage(with: url)
+            artistImageView.sd_setImage(with: url)
         }
     }
 }

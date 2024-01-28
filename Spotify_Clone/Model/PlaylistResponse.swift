@@ -22,3 +22,7 @@ struct CategoryPlaylist: Codable {
 struct PlaylistDetailsResponse: Codable {
     let items: [PlaylistItem]
 }
+
+struct LibraryPlaylistDetailsResponse: Codable {
+    let total: Int
+}

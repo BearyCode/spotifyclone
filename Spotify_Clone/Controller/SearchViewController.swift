@@ -9,6 +9,8 @@ import UIKit
 
 class SearchViewController: UIViewController {
     
+    private var categories = [Category]()
+    
     private let headerView = HeaderView()
     
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
@@ -27,6 +29,7 @@ class SearchViewController: UIViewController {
         setupCollectionView()
         setupHeaderView()
 //        setupSearchBar()
+        fetchData()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -74,10 +77,9 @@ class SearchViewController: UIViewController {
         layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .systemRed
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+        collectionView.register(CategoryCollectionViewCell.self, forCellWithReuseIdentifier: CategoryCollectionViewCell.identifier)
         collectionView.setCollectionViewLayout(layout, animated: true)
         
         let top = collectionView.topAnchor.constraint(equalTo: view.topAnchor, constant: view.frame.height/5)
@@ -87,17 +89,31 @@ class SearchViewController: UIViewController {
         
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
     }
+    
+    private func fetchData() {
+        NetworkManager.shared.getCategories { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let requestedCategories):
+                    self.categories = requestedCategories
+                    self.collectionView.reloadData()
+                case .failure(let error):
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
 }
 
 extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        return categories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
-        cell.backgroundColor = .systemBlue
-        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCollectionViewCell.identifier, for: indexPath) as! CategoryCollectionViewCell
+        cell.layer.cornerRadius = 5
+        cell.setContent(categoyName: categories[indexPath.row].name, iconURL: categories[indexPath.row].icons.first?.url)
         return cell
     }
     

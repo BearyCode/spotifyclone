@@ -8,7 +8,6 @@
 import UIKit
 
 class HeaderView: UIView {
-    
     public var customLeadingAnchor = NSLayoutXAxisAnchor()
     
     private let titleLabel: UILabel = {
