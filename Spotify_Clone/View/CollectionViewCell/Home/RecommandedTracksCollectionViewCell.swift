@@ -20,7 +20,7 @@ class RecommandedTracksCollectionViewCell: UICollectionViewCell {
     private let coverImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "photo")
-        imageView.tintColor = .label
+        imageView.tintColor = .white
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -30,6 +30,7 @@ class RecommandedTracksCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.text = "Song Title"
         label.font = .systemFont(ofSize: 15, weight: .semibold)
+        label.textColor = .white
         label.numberOfLines = 0
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false

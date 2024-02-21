@@ -20,7 +20,7 @@ class NewReleasedAlbumCollectionViewCell: UICollectionViewCell {
     private let coverImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "person.crop.square")
-        imageView.tintColor = .label
+        imageView.tintColor = .white
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -30,7 +30,7 @@ class NewReleasedAlbumCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.text = "Content"
         label.font = .systemFont(ofSize: 15, weight: .regular)
-        label.textColor = .label
+        label.textColor = .white
         label.numberOfLines = 0
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false

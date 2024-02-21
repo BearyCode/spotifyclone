@@ -21,7 +21,7 @@ class LibraryViewController: UIViewController {
     
     private var sections = [LibrarySectionType]()
     
-    private let headerView = HeaderView()
+    private let headerView = MainViewControllerHeaderView()
     
     private let tableView: UITableView = {
         let tableView = UITableView()
@@ -91,7 +91,7 @@ class LibraryViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .spotifyBackground
+        setupNavigationBar()
         setupTableView()
         setupHeaderView()
         fetchData()
@@ -104,6 +104,18 @@ class LibraryViewController: UIViewController {
         setupPlaylistsButton()
         setupAlbumsButton()
         setupArtistsButton()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.isHidden = true
+    }
+    
+    private func setupNavigationBar() {
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = .spotifyBackground
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = .white
     }
     
     private func setupTableView() {
@@ -268,6 +280,10 @@ class LibraryViewController: UIViewController {
         
         tableView.reloadData()
     }
+    
+    @objc private func filterButtonTapped(sender _: UIButton) {
+        
+    }
 }
 
 extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
@@ -296,7 +312,7 @@ extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
         switch sections[indexPath.section] {
             case .savedPlaylists(let playlists):
                 let cell = tableView.dequeueReusableCell(withIdentifier: LibraryPlaylistTableViewCell.identifier, for: indexPath) as! LibraryPlaylistTableViewCell
-            cell.setContent(imageURL: playlists[indexPath.row].images.first?.url, playlistName: playlists[indexPath.row].name, numberOfSongs: playlists[indexPath.row].tracks.total)
+                cell.setContent(imageURL: playlists[indexPath.row].images.first?.url, playlistName: playlists[indexPath.row].name, numberOfSongs: playlists[indexPath.row].tracks.total)
                 cell.selectionStyle = .none
                 return cell
             case .savedArtists(let artists):
@@ -316,16 +332,13 @@ extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
         switch sections[indexPath.section] {
         case .savedPlaylists(savedPlaylists: let playlists):
             let vc = PlaylistViewController(playlist: playlists[indexPath.row])
-            vc.modalPresentationStyle = .popover
-            present(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         case .savedArtists(savedArtists: let artists):
-            let vc = ArtistViewController()
-            vc.modalPresentationStyle = .popover
-            present(vc, animated: true)
+            let vc = ArtistViewController(artist: artists[indexPath.row])
+            navigationController?.pushViewController(vc, animated: true)
         case .savedAlbums(savedAlbums: let albums):
             let vc = AlbumViewController(album: albums[indexPath.row])
-            vc.modalPresentationStyle = .popover
-            present(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
 }

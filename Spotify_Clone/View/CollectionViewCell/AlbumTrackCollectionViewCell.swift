@@ -1,15 +1,14 @@
 //
-//  SongListTableViewCell.swift
-//  SpotifyClone
+//  AlbumTrackCollectionViewCell.swift
+//  Spotify_Clone
 //
-//  Created by BearyCode on 09.01.24.
+//  Created by BearyCode on 13.02.24.
 //
 
 import UIKit
 
-class SongListTableViewCell: UITableViewCell {
-
-    static let identifier = "SongListTableViewCell"
+class AlbumTrackCollectionViewCell: UICollectionViewCell {
+    static let identifier = "AlbumTrackCollectionViewCell"
     
     private let likeImageView: UIImageView = {
         let imageView = UIImageView()
@@ -23,7 +22,8 @@ class SongListTableViewCell: UITableViewCell {
         let label = UILabel()
         label.text = "Song Title"
         label.font = .systemFont(ofSize: 15, weight: .semibold)
-        label.numberOfLines = 0
+        label.textColor = .white
+        label.numberOfLines = 1
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -32,7 +32,7 @@ class SongListTableViewCell: UITableViewCell {
     private let artistLabel: UILabel = {
         let label = UILabel()
         label.text = "Artist"
-        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.font = .systemFont(ofSize: 12, weight: .regular)
         label.textColor = .systemGray
         label.numberOfLines = 0
         label.textAlignment = .left
@@ -52,8 +52,8 @@ class SongListTableViewCell: UITableViewCell {
         return button
     }()
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
     }
     
     required init?(coder: NSCoder) {
@@ -72,17 +72,17 @@ class SongListTableViewCell: UITableViewCell {
     private func setupTitleLabel() {
         addSubview(titleLabel)
         
-        let centerY = titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
-        let trailing = titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
+        let top = titleLabel.topAnchor.constraint(equalTo: topAnchor)
+        let trailing = titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -40)
         let leading = titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10)
         
-        NSLayoutConstraint.activate([centerY, trailing, leading])
+        NSLayoutConstraint.activate([top, trailing, leading])
     }
     
     private func setupArtistLabel() {
         addSubview(artistLabel)
         
-        let top = artistLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor)
+        let top = artistLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: -10)
         let trailing = artistLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
         let bottom = artistLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
         let leading = artistLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10)

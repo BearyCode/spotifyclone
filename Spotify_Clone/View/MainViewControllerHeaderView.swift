@@ -7,14 +7,13 @@
 
 import UIKit
 
-class HeaderView: UIView {
-    public var customLeadingAnchor = NSLayoutXAxisAnchor()
+class MainViewControllerHeaderView: UIView {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = ""
         label.font = .systemFont(ofSize: 25, weight: .bold)
-        label.textColor = .label
+        label.textColor = .white
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -54,14 +53,12 @@ class HeaderView: UIView {
         
         setupTitleLabel()
         
-        let height = profileButton.heightAnchor.constraint(equalTo: titleLabel.heightAnchor)
-        let width = profileButton.widthAnchor.constraint(equalTo: titleLabel.heightAnchor)
+        let height = profileButton.heightAnchor.constraint(equalToConstant: 33)
+        let width = profileButton.widthAnchor.constraint(equalToConstant: 33)
         
         NSLayoutConstraint.activate([width, height, top, leading])
         
-        profileButton.layer.cornerRadius = profileButton.frame.height/2
-        
-        customLeadingAnchor = profileButton.trailingAnchor
+        profileButton.layer.cornerRadius = 33/2
     }
     
     private func setupTitleLabel() {

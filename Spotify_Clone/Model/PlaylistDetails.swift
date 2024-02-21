@@ -10,8 +10,10 @@ import Foundation
 struct PlaylistDetails: Codable {
     let description: String
     let external_urls: [String: String]
+    let followers: Follower
     let id: String
     let images: [Image]
     let name: String
+    let owner: Owner
     let tracks: PlaylistDetailsResponse
 }

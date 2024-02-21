@@ -1,15 +1,15 @@
 //
-//  LibraryArtistTableViewCell.swift
-//  SpotifyClone
+//  LibraryPlaylistTableViewCell.swift
+//  Spotify_Clone
 //
-//  Created by BearyCode on 21.12.23.
+//  Created by BearyCode on 27.01.24.
 //
 
 import UIKit
 import SDWebImage
 
-class LibraryArtistTableViewCell: UITableViewCell {
-    static let identifier = "LibraryArtistTableViewCell"
+class LibraryPlaylistTableViewCell: UITableViewCell {
+    static let identifier = "LibraryPlaylistTableViewCell"
         
     private let containerView: UIView = {
         let view = UIView()
@@ -18,20 +18,21 @@ class LibraryArtistTableViewCell: UITableViewCell {
         return view
     }()
     
-    private let artistImageView: UIImageView = {
+    private let playlistImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "person.crop.circle.fill")
-        imageView.tintColor = .label
+        imageView.tintColor = .white
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
-    private let artistNameLabel: UILabel = {
+    private let playlistNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Artist Album"
-        label.font = .systemFont(ofSize: 20, weight: .semibold)
+        label.text = "Album"
+        label.font = .systemFont(ofSize: 18, weight: .semibold)
+        label.textColor = .white
         label.numberOfLines = 1
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -40,8 +41,8 @@ class LibraryArtistTableViewCell: UITableViewCell {
     
     private let typeLabel: UILabel = {
         let label = UILabel()
-        label.text = "Artist"
-        label.font = .systemFont(ofSize: 15, weight: .regular)
+        label.text = "Playlist • 00 Songs"
+        label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = .systemGray
         label.numberOfLines = 0
         label.textAlignment = .left
@@ -73,16 +74,14 @@ class LibraryArtistTableViewCell: UITableViewCell {
     }
     
     private func setupImageView() {
-        contentView.addSubview(artistImageView)
+        contentView.addSubview(playlistImageView)
         
-        let width = artistImageView.widthAnchor.constraint(equalTo: artistImageView.heightAnchor)
-        let top = artistImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5)
-        let bottom = artistImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
-        let leading = artistImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10)
+        let width = playlistImageView.widthAnchor.constraint(equalTo: playlistImageView.heightAnchor)
+        let top = playlistImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5)
+        let bottom = playlistImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
+        let leading = playlistImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([width, top, bottom, leading])
-        
-        artistImageView.layer.cornerRadius = (contentView.frame.height-10)/2
     }
     
     private func setupContainerView() {
@@ -91,18 +90,18 @@ class LibraryArtistTableViewCell: UITableViewCell {
         let top = containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5)
         let trailing = containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         let bottom = containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
-        let leading = containerView.leadingAnchor.constraint(equalTo: artistImageView.trailingAnchor, constant: 10)
+        let leading = containerView.leadingAnchor.constraint(equalTo: playlistImageView.trailingAnchor, constant: 10)
 
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
         
-        containerView.addSubview(artistNameLabel)
+        containerView.addSubview(playlistNameLabel)
         containerView.addSubview(typeLabel)
     }
 
     private func setupArtistAlbumLabel() {
-        let centerY = artistNameLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -10)
-        let trailing = artistNameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
-        let leading = artistNameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
+        let centerY = playlistNameLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -10)
+        let trailing = playlistNameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+        let leading = playlistNameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)
         
         NSLayoutConstraint.activate([centerY, trailing, leading])
     }
@@ -116,12 +115,12 @@ class LibraryArtistTableViewCell: UITableViewCell {
         NSLayoutConstraint.activate([centerY, trailing, bottom, leading])
     }
     
-    public func setContent(imageURL: String?, artistName: String?) {
-        artistNameLabel.text = artistName ?? ""
-        
+    public func setContent(imageURL: String?, playlistName: String, numberOfSongs: Int) {
+        playlistNameLabel.text = playlistName
+        typeLabel.text = "Playlist • \(numberOfSongs) Songs"
         if let imageURL = imageURL {
             let url = URL(string: imageURL)
-            artistImageView.sd_setImage(with: url)
+            playlistImageView.sd_setImage(with: url)
         }
     }
 }

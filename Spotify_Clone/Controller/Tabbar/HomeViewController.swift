@@ -11,14 +11,6 @@ enum HomeSectionType {
     case featuredPlaylists(featuredPlaylists: [Playlist])
     case newReleases(newReleasedAlbums: [Album])
     case recommendedTracks(recommendedTracks: [Track])
-    
-    var title: String {
-        switch self {
-        case .featuredPlaylists: return "Featured Playlists"
-        case .newReleases: return "New Releases"
-        case .recommendedTracks: return "Recommended Tracks"
-        }
-    }
 }
 
 class HomeViewController: UIViewController {
@@ -27,7 +19,7 @@ class HomeViewController: UIViewController {
     private var albums: [Album] = []
     private var tracks: [Track] = []
     
-    private let headerView = HeaderView()
+    private let headerView = MainViewControllerHeaderView()
     
     private var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewCompositionalLayout { sectionIndex, _ -> NSCollectionLayoutSection? in
         return HomeViewController.createSectionsLayout(section: sectionIndex)
@@ -35,55 +27,17 @@ class HomeViewController: UIViewController {
     
     private var sections = [HomeSectionType]()
     
-    private lazy var allButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("All", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .regular)
-        button.backgroundColor = .filterBackground
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
-        button.layer.masksToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var musicButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Music", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-        button.backgroundColor = .filterBackground
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
-        button.layer.masksToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var podcastsButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Podcasts", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-        button.backgroundColor = .filterBackground
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
-        button.layer.masksToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
-        return button
-    }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .spotifyBackground
+        setupNavigationBar()
         setupCollectionView()
         setupHeaderView()
         fetchData()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        setupPodcastsButton()
-        setupMusicButton()
-        setupAllButton()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.isHidden = true
     }
     
     private static func createSectionsLayout(section: Int) -> NSCollectionLayoutSection {
@@ -141,6 +95,13 @@ class HomeViewController: UIViewController {
         }
     }
     
+    private func setupNavigationBar() {
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = .spotifyBackground
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = .white
+    }
+    
     private func setupCollectionView() {
         collectionView.register(CollectionHeaderReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CollectionHeaderReusableView.identifier)
         collectionView.register(FeaturedPlaylistCollectionViewCell.self, forCellWithReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier)
@@ -173,51 +134,12 @@ class HomeViewController: UIViewController {
         let leading = headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
         
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
-        headerView.addSubview(podcastsButton)
-        headerView.addSubview(musicButton)
-        headerView.addSubview(allButton)
-    }
-    
-    private func setupAllButton() {
-        let top = allButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 10)
-        let bottom = allButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -5)
-        let trailing = allButton.leadingAnchor.constraint(equalTo: headerView.customLeadingAnchor, constant: 10)
-        
-        NSLayoutConstraint.activate([top, bottom, trailing])
-        
-        if allButton.frame.height != 0 {
-            allButton.layer.cornerRadius = allButton.frame.height/2
-        }
-    }
-    
-    private func setupMusicButton() {
-        let top = allButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 10)
-        let bottom = musicButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -5)
-        let trailing = musicButton.leadingAnchor.constraint(equalTo: allButton.trailingAnchor, constant: 10)
-        
-        NSLayoutConstraint.activate([bottom, trailing])
-        
-        if musicButton.frame.height != 0 {
-            musicButton.layer.cornerRadius = musicButton.frame.height/2
-        }
-    }
-    
-    private func setupPodcastsButton() {
-        let top = allButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 10)
-        let bottom = podcastsButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -5)
-        let trailing = podcastsButton.leadingAnchor.constraint(equalTo: musicButton.trailingAnchor, constant: 10)
-        
-        NSLayoutConstraint.activate([bottom, trailing])
-        
-        if podcastsButton.frame.height != 0 {
-            podcastsButton.layer.cornerRadius = podcastsButton.frame.height/2
-        }
     }
     
     private func fetchData() {
         var featurePlaylist: FeaturedPlaylist?
         var newReleasedAlbums: NewReleases?
-        var recommendedTracks: RecommendedTracks?
+        var recommendedTracks: CustomTracksResponse?
         
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
@@ -302,18 +224,6 @@ class HomeViewController: UIViewController {
         collectionView.reloadData()
     }
     
-    @objc private func filterButtonTapped(_ sender: UIButton) {
-        var buttons = [allButton, musicButton, podcastsButton]
-        
-        for button in buttons {
-            button.backgroundColor = .filterBackground
-            button.setTitleColor(.label, for: .normal)
-        }
-        
-        sender.backgroundColor = UIColor.spotifyGreen
-        sender.setTitleColor(.black, for: .normal)
-    }
-    
 }
 
 extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -355,7 +265,7 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CollectionHeaderReusableView.identifier, for: indexPath) as? UICollectionReusableView as? CollectionHeaderReusableView, kind == UICollectionView.elementKindSectionHeader else {
+        guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CollectionHeaderReusableView.identifier, for: indexPath) as? CollectionHeaderReusableView, kind == UICollectionView.elementKindSectionHeader else {
             return UICollectionReusableView()
         }
         
@@ -365,13 +275,13 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         switch sections[section] {
         case .featuredPlaylists: 
             headerTitle = "Featured Playlists"
-        case .newReleases: 
+        case .newReleases:
             headerTitle = "New Releases"
         case .recommendedTracks: 
             headerTitle = "Recommended Tacks"
         }
         
-        header.configureHeaderTitle(title: headerTitle)
+        header.setHeaderTitle(title: headerTitle)
         
         return header
     }
@@ -383,17 +293,21 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         case .featuredPlaylists:
             let featPlaylist = playlists[indexPath.row]
             var vc = PlaylistViewController(playlist: featPlaylist)
-            vc.modalPresentationStyle = .popover
-            present(vc, animated: true)
+//            vc.modalPresentationStyle = .popover
+//            present(vc, animated: true)
+            
+            navigationController?.pushViewController(vc, animated: true)
         case .newReleases:
             let newAlbum = albums[indexPath.row]
             let vc = AlbumViewController(album: newAlbum)
-            vc.modalPresentationStyle = .popover
-            present(vc, animated: true)
+//            vc.modalPresentationStyle = .popover
+//            present(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         default:
-            var test = ArtistViewController()
-            test.modalPresentationStyle = .popover
-            present(test, animated: true)
+            print("Play song")
+//            var test = ArtistViewController()
+//            test.modalPresentationStyle = .popover
+//            present(test, animated: true)
         }
     }
 }

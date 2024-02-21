@@ -11,6 +11,6 @@ struct TrackResponse: Codable {
     let items: [Track]
 }
 
-struct RecommendedTracks: Codable {
+struct CustomTracksResponse: Codable {
     let tracks: [Track]
 }

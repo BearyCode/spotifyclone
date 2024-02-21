@@ -7,184 +7,323 @@
 
 import UIKit
 
+enum ArtistSectionType {
+    case artistHeader
+    case popularTracks(popularTracks: [Track])
+    case albums(albums: [Album])
+    case relatedArtists(relatedArtists: [Artist])
+}
+
 class ArtistViewController: UIViewController {
     
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemRed
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
+    let artist: Artist
+    var popularTracks = [Track]()
+    var albums = [Album]()
+    var relatedArtists = [Artist]()
     
-    private let tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.backgroundColor = .clear
-        tableView.separatorStyle = .none
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(SongListTableViewCell.self, forCellReuseIdentifier: SongListTableViewCell.identifier)
-        return tableView
-    }()
+    private var sections = [ArtistSectionType]()
     
-    private let artistImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person.crop.circle.fill")
-        imageView.tintColor = .label
-        imageView.contentMode = .scaleAspectFit
-        imageView.backgroundColor = .spotifyGreen
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
+    private var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewCompositionalLayout { sectionIndex, _ -> NSCollectionLayoutSection? in
+        return ArtistViewController.createSectionsLayout(section: sectionIndex)
+    })
     
-    private let artitsLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Artist"
-        label.font = .systemFont(ofSize: 40, weight: .bold)
-        label.textAlignment = .left
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+    init(artist: Artist) {
+        self.artist = artist
+        super.init(nibName: nil, bundle: nil)
+    }
     
-    private let followersLabel: UILabel = {
-        let label = UILabel()
-        label.text = "1,902,458 Followers"
-        label.textColor = .systemGray
-        label.textAlignment = .left
-        label.font = .systemFont(ofSize: 15, weight: .semibold)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
-    private let followButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Follow", for: .normal)
-        button.setTitleColor(.label, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-        button.layer.borderColor = UIColor.systemGray.cgColor
-        button.layer.borderWidth = 1
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    private let playButton: UIButton = {
-        let image = UIImage(systemName: "arrowtriangle.forward.circle.fill", withConfiguration: UIImage.SymbolConfiguration(weight: .light))?.withTintColor(.spotifyGreen, renderingMode: .alwaysOriginal)
-        let button = UIButton()
-        button.setImage(image, for: .normal)
-        button.imageView?.contentMode = .scaleAspectFit
-        button.contentHorizontalAlignment = .fill
-        button.contentVerticalAlignment = .fill
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavigationBar()
+        setupCollectionView()
+        fetchData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.isHidden = false
+        navigationController?.navigationBar.barTintColor = .spotifyBackground
+    }
+    
+    private func setupNavigationBar() {
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = .spotifyBackground
-        setupArtistImageView()
-        setupArtistLabel()
-        setupContainerView()
-        setupTableView()
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = .white
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        setupFollowButton()
-        setupFollowersLabel()
-        setupPlayButton()
-    }
-    
-    private func setupArtistImageView() {
-        view.addSubview(artistImageView)
+    private static func createSectionsLayout(section: Int) -> NSCollectionLayoutSection {
+        let supplementaryViews = [NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(50)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)]
         
-        let top = artistImageView.topAnchor.constraint(equalTo: view.topAnchor)
-        let trailing = artistImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        let bottom = artistImageView.bottomAnchor.constraint(equalTo: view.topAnchor, constant: view.frame.height/3)
-        let leading = artistImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        switch section {
+        case 0:
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(50)), subitem: item, count: 1)
+            let section = NSCollectionLayoutSection(group: group)
+            section.boundarySupplementaryItems = [NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(1.0)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)]
+            return section
+            
+        case 1:
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
+            
+            let horizontalGroup = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(400)), subitem: item, count: 1)
+            let verticalGroup = NSCollectionLayoutGroup.vertical(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(0.5)), subitem: horizontalGroup, count: 5)
+            
+            let section = NSCollectionLayoutSection(group: verticalGroup)
+            section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
+            section.boundarySupplementaryItems = supplementaryViews
+            
+            return section
+            
+        case 2:
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
+            
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.48), heightDimension: .absolute(200)), subitem: item, count: 1)
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
+            section.boundarySupplementaryItems = supplementaryViews
+            
+            return section
+            
+        case 3:
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
+            
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.48), heightDimension: .absolute(200)), subitem: item, count: 1)
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
+            section.boundarySupplementaryItems = supplementaryViews
+            
+            return section
+            
+        default:
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
+            
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.48), heightDimension: .absolute(200)), subitem: item, count: 1)
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
+            section.boundarySupplementaryItems = supplementaryViews
+            
+            return section
+        }
+    }
+    
+    private func setupCollectionView() {
+        collectionView.register(ArtistHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ArtistHeaderCollectionReusableView.identifier)
+        collectionView.register(CollectionHeaderReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CollectionHeaderReusableView.identifier)
+        collectionView.register(ArtistPopularTrackCollectionViewCell.self, forCellWithReuseIdentifier: ArtistPopularTrackCollectionViewCell.identifier)
+        collectionView.register(ArtistAlbumCollectionViewCell.self, forCellWithReuseIdentifier: ArtistAlbumCollectionViewCell.identifier)
+        collectionView.register(ArtistRecommandedCollectionViewCell.self, forCellWithReuseIdentifier: ArtistRecommandedCollectionViewCell.identifier)
+        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.backgroundColor = .clear
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(collectionView)
+        
+        let top = collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+        let trailing = collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        let bottom = collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        let leading = collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
         
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
     }
     
-    private func setupArtistLabel() {
-        artistImageView.addSubview(artitsLabel)
+    private func fetchData() {
+        var requestedPopularTracks = [Track]()
+        var requestedArtistAlbums = [Album]()
+        var requestedRelatedArtists = [Artist]()
         
-        let bottom = artitsLabel.bottomAnchor.constraint(equalTo: artistImageView.bottomAnchor, constant: -10)
-        let leading = artitsLabel.leadingAnchor.constraint(equalTo: artistImageView.leadingAnchor, constant: 10)
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        dispatchGroup.enter()
+        dispatchGroup.enter()
         
-        NSLayoutConstraint.activate([bottom, leading])
+        NetworkManager.shared.getArtistTopTracks(artist: artist) { result in
+            defer {
+                dispatchGroup.leave()
+            }
+            
+            switch result {
+            case.success(let reqestedTracks):
+                requestedPopularTracks = reqestedTracks
+            case .failure(let error):
+                print(error)
+            }
+            
+        }
+        
+        NetworkManager.shared.getArtistAlbums(artist: artist) { result in
+            defer {
+                dispatchGroup.leave()
+            }
+            
+            switch result {
+            case .success(let requestedAlbums):
+                requestedArtistAlbums = requestedAlbums
+            case .failure(let error):
+                print(error)
+            }
+        }
+        
+        NetworkManager.shared.getRelatedArtists(artist: artist) { result in
+            defer {
+                dispatchGroup.leave()
+            }
+            switch result {
+            case .success(let requestedArtists):
+                requestedRelatedArtists = requestedArtists
+            case .failure(let error):
+                print(error)
+            }
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            self.configureSectionsData(loadedTracks: requestedPopularTracks, loadedAlbums: requestedArtistAlbums, loadedArtists: requestedRelatedArtists)
+        }
     }
     
-    private func setupContainerView() {
-        view.addSubview(containerView)
+    private func configureSectionsData(loadedTracks: [Track], loadedAlbums: [Album], loadedArtists: [Artist]) {
+        popularTracks = loadedTracks
+        albums = loadedAlbums
+        relatedArtists = loadedArtists
         
-        let height = containerView.heightAnchor.constraint(equalToConstant: view.frame.height/8)
-        let top = containerView.topAnchor.constraint(equalTo: artistImageView.bottomAnchor)
-        let trailing = containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        let leading = containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        sections.append(.artistHeader)
+        sections.append(.popularTracks(popularTracks: loadedTracks))
+        sections.append(.albums(albums: loadedAlbums))
+        sections.append(.relatedArtists(relatedArtists: loadedArtists))
         
-        NSLayoutConstraint.activate([height, top, trailing, leading])
-        
-        containerView.addSubview(followersLabel)
-        containerView.addSubview(followButton)
-        containerView.addSubview(playButton)
+        collectionView.reloadData()
     }
     
-    private func setupFollowButton() {
-        let height = followButton.heightAnchor.constraint(equalToConstant: containerView.frame.height/3)
-        let top = followButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
-        let leading = followButton.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 10)
+    private func formatTypeYear(type: String, date: String) -> String {
+        var formattedYear = 0
         
-        NSLayoutConstraint.activate([height, top, leading])
+        let correctedType: String = {
+            
+            guard let firstChar = type.first else {
+                return ""
+            }
+            
+            var endString = type
+            endString.removeFirst()
+            
+            return firstChar.uppercased() + endString
+        }()
         
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyy-MM-dd"
         
-        followButton.layer.cornerRadius = followButton.frame.height/2
-    }
-    
-    private func setupFollowersLabel() {
-        let top = followersLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 10)
-        let bottom = followersLabel.bottomAnchor.constraint(equalTo: followButton.topAnchor, constant: -10)
-        let leading = followersLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 10)
+        if let date = formatter.date(from: date) {
+            let calender = Calendar.current
+            formattedYear = calender.component(.year, from: date)
+        }
         
-        NSLayoutConstraint.activate([top, bottom, leading])
-    }
-    
-    private func setupPlayButton() {
-        let height = playButton.heightAnchor.constraint(equalToConstant: (containerView.frame.height/2)+10)
-        let width = playButton.widthAnchor.constraint(equalToConstant: (containerView.frame.height/2)+10)
-        let trailing = playButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -10)
-        let bottom = playButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+        if formattedYear != 0 {
+            return "\(formattedYear) • \(correctedType)"
+        }
         
-        NSLayoutConstraint.activate([height, width, trailing, bottom])
-    }
-    
-    private func setupTableView() {
-        view.addSubview(tableView)
-        
-        tableView.delegate = self
-        tableView.dataSource = self
-        
-        let top = tableView.topAnchor.constraint(equalTo: containerView.bottomAnchor)
-        let trailing = tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        let bottom = tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        let leading = tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10)
-        
-        NSLayoutConstraint.activate([top, trailing, bottom, leading])
-
+        return "\(correctedType)"
     }
 }
 
-extension ArtistViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return sections.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: SongListTableViewCell.identifier, for: indexPath) as UITableViewCell
-        cell.selectionStyle = .none
-        return cell
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let selectedSection = sections[section]
+        
+        switch selectedSection {
+        case .popularTracks(let tracks):
+            return tracks.count
+        case .albums(let albums):
+            return albums.count
+        case .relatedArtists(let artists):
+            return artists.count
+        default:
+            return 0
+        }
     }
     
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        switch sections[indexPath.section] {
+        case .popularTracks(let tracks):
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ArtistPopularTrackCollectionViewCell.identifier, for: indexPath) as! ArtistPopularTrackCollectionViewCell
+            cell.setContent(number: indexPath.row+1, title: tracks[indexPath.row].name, coverImageURL: tracks[indexPath.row].album?.images.first?.url)
+            return cell
+        case .albums(let albums):
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ArtistAlbumCollectionViewCell.identifier, for: indexPath) as! ArtistAlbumCollectionViewCell
+            cell.setContent(title: albums[indexPath.row].name, typeYear: formatTypeYear(type: albums[indexPath.row].album_type, date: albums[indexPath.row].release_date), coverImageURL: albums[indexPath.row].images.first?.url)
+            return cell
+        case .relatedArtists(let artists):
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ArtistRecommandedCollectionViewCell.identifier, for: indexPath) as! ArtistRecommandedCollectionViewCell
+            cell.setContent(title: artists[indexPath.row].name, coverImageURL: artists[indexPath.row].images?.first?.url)
+            return cell
+        default:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as UICollectionViewCell
+            return cell
+        }
+    }
     
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CollectionHeaderReusableView.identifier, for: indexPath) as UICollectionReusableView as? CollectionHeaderReusableView, kind == UICollectionView.elementKindSectionHeader else {
+            return UICollectionReusableView()
+        }
+        
+        let section = sections[indexPath.section]
+        
+        switch section {
+        case .artistHeader:
+            guard let artistHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: ArtistHeaderCollectionReusableView.identifier, for: indexPath) as? ArtistHeaderCollectionReusableView else {
+                return UICollectionReusableView()
+            }
+            
+            artistHeader.setContent(artistName: artist.name, followers: 123456789, coverImageURL: artist.images?.first?.url)
+            return artistHeader
+            
+        case .popularTracks:
+            header.setHeaderTitle(title: "Popular")
+            return header
+            
+        case .albums:
+            header.setHeaderTitle(title: "Releases")
+            return header
+            
+        case .relatedArtists:
+            header.setHeaderTitle(title: "Fans also like")
+            return header
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let section = sections[indexPath.section]
+        
+        switch section {
+        case .popularTracks(popularTracks: let tracks):
+            // let vc = PlaylistViewController(playlist: playlists[indexPath.row])
+            // navigationController?.pushViewController(vc, animated: true)
+            print("Play track")
+        case .albums(albums: let albums):
+            let vc = AlbumViewController(album: albums[indexPath.row])
+            navigationController?.pushViewController(vc, animated: true)
+        case .relatedArtists(relatedArtists: let artists):
+            let vc = ArtistViewController(artist: artists[indexPath.row])
+            navigationController?.pushViewController(vc, animated: true)
+        default:
+            break
+        }
+    }
 }

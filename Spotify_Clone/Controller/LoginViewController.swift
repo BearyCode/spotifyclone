@@ -14,8 +14,7 @@ class LoginViewController: UIViewController, WKNavigationDelegate, WKUIDelegate 
         prefs.allowsContentJavaScript = true
         let config = WKWebViewConfiguration()
         config.defaultWebpagePreferences = prefs
-        let webView = WKWebView(frame: .zero,
-                                configuration: config)
+        let webView = WKWebView(frame: .zero, configuration: config)
         return webView
     }()
     
@@ -23,11 +22,11 @@ class LoginViewController: UIViewController, WKNavigationDelegate, WKUIDelegate 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Sign In"
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = .systemBackground
-        webView.uiDelegate = self
-        webView.allowsBackForwardNavigationGestures = true
-        webView.allowsLinkPreview = true
+//        webView.uiDelegate = self
+//        webView.allowsBackForwardNavigationGestures = true
+//        webView.allowsLinkPreview = true
         webView.navigationDelegate = self
         view.addSubview(webView)
         guard let url = NetworkManager.shared.loginURL else {
@@ -46,7 +45,6 @@ class LoginViewController: UIViewController, WKNavigationDelegate, WKUIDelegate 
             return
         }
         
-        // Exchange the code for access token
         guard let code = URLComponents(string: url.absoluteString)?.queryItems?.first(where: { $0.name == "code"  })?.value else {
             return
         }

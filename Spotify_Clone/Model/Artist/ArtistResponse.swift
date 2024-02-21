@@ -14,3 +14,7 @@ struct ArtistResponse: Codable {
 struct LibraryArtistResponse: Codable {
     let artists: ArtistResponse
 }
+
+struct RelatedArtistResponse: Codable {
+    let artists: [Artist]
+}

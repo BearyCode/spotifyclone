@@ -97,7 +97,7 @@ class NetworkManager {
         
         request.setValue("Basic \(base64String)", forHTTPHeaderField: "Authorization")
         
-        let task = URLSession.shared.dataTask(with: request) { data, _, error in
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 completion(false)
                 return
@@ -151,7 +151,7 @@ class NetworkManager {
         
         request.setValue("Basic \(base64String)", forHTTPHeaderField: "Authorization")
         
-        let task = URLSession.shared.dataTask(with: request) { data, _, error in
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             self.isRefreshingToken = false
             guard let data = data, error == nil else {
                 return
@@ -208,7 +208,7 @@ class NetworkManager {
     public func getFeaturedPlaylists(completion: @escaping (Result<FeaturedPlaylist, Error>) -> Void) {
         createAPIRequest(url: URL(string: "\(apiURL)/browse/featured-playlists?limit=20" ), type: .GET) { request in
             
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -227,7 +227,7 @@ class NetworkManager {
     public func getNewAlbumReleases(completion: @escaping (Result<NewReleases, Error>) -> Void) {
         createAPIRequest(url: URL(string: "\(apiURL)/browse/new-releases?limit=20" ), type: .GET) { request in
             
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -246,7 +246,7 @@ class NetworkManager {
     
     public func getRecomendedGenres(completion: @escaping ((Result<GenreResponse, Error>) -> Void)) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/recommendations/available-genre-seeds"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -262,17 +262,17 @@ class NetworkManager {
         }
     }
     
-    public func getRecomendedTracks(genres: Set<String>, completion: @escaping ((Result<RecommendedTracks, Error>) -> Void)) {
+    public func getRecomendedTracks(genres: Set<String>, completion: @escaping ((Result<CustomTracksResponse, Error>) -> Void)) {
         let seeds = genres.joined(separator: ",")
         
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/recommendations?limit=20&seed_genres=\(seeds)"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
                 
                 do {
-                    let result = try JSONDecoder().decode(RecommendedTracks.self, from: data)
+                    let result = try JSONDecoder().decode(CustomTracksResponse.self, from: data)
                     completion(.success(result))
                 } catch {
                     completion(.failure(error))
@@ -284,7 +284,7 @@ class NetworkManager {
     
     public func getAlbumTracks(album: Album, completion: @escaping (Result<AlbumDetails, Error>) -> Void) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/albums/\(album.id)"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -302,7 +302,7 @@ class NetworkManager {
     
     public func getPlaylistTracks(playlist: Playlist, completion: @escaping (Result<PlaylistDetails, Error>) -> Void) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/playlists/\(playlist.id)"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -320,7 +320,7 @@ class NetworkManager {
     
     public func getUserSavedArtists(completion: @escaping (Result<[Artist], Error>) -> Void) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/me/following?type=artist"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -339,7 +339,7 @@ class NetworkManager {
     
     public func getUserSavedAlbums(completion: @escaping (Result<[Album], Error>) -> Void) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/me/albums"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -357,7 +357,7 @@ class NetworkManager {
     
     public func getUserSavedPlaylists(completion: @escaping (Result<[Playlist], Error>) -> Void) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/me/playlists"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -375,7 +375,7 @@ class NetworkManager {
     
     public func getCategories(completion: @escaping (Result<[Category], Error>) -> Void) {
         createAPIRequest(url: URL(string: "https://api.spotify.com/v1/browse/categories"), type: .GET) { request in
-            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     return
                 }
@@ -383,6 +383,96 @@ class NetworkManager {
                 do {
                     let result = try JSONDecoder().decode(CategoriesResponse.self, from: data)
                     completion(.success(result.categories.items))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func getCategoryDetails(category: Category, completion: @escaping (Result<[Playlist], Error>) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/browse/categories/\(category.id)/playlists?limit=50"), type: .GET) { request in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(CategoryPlaylist.self, from: data)
+                    completion(.success(result.playlists.items))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func getArtistTopTracks(artist: Artist, completion: @escaping (Result<[Track], Error>) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/artists/\(artist.id)/top-tracks?limit=5&market=de"), type: .GET) { request in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(CustomTracksResponse.self, from: data)
+                    completion(.success(result.tracks))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func getArtistAlbums(artist: Artist, completion: @escaping (Result<[Album], Error>) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/artists/\(artist.id)/albums"), type: .GET) { request in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(AlbumResponse.self, from: data)
+                    completion(.success(result.items))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func getRelatedArtists(artist: Artist, completion: @escaping (Result<[Artist], Error>) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/artists/\(artist.id)/related-artists"), type: .GET) { request in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(RelatedArtistResponse.self, from: data)
+                    completion(.success(result.artists))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func getSearchResults(query: String, completion: @escaping (Result<SearchResultResponse, Error>) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/search?limit=10&type=track,artist,album,playlist&q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"), type: .GET) { request in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(SearchResultResponse.self, from: data)
+                    completion(.success(result))
                 } catch {
                     completion(.failure(error))
                 }
