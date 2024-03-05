@@ -14,10 +14,15 @@ enum LibrarySectionType {
 }
 
 class LibraryViewController: UIViewController {
+
+    private var numberOfPlaylists = 0
+    private var numberOfArtists = 0
+    private var numberOfAlbums = 0
     
     private var playlists = [Playlist]()
     private var artists = [Artist]()
     private var albums = [Album]()
+    private var currentUser: User? = nil
     
     private var sections = [LibrarySectionType]()
     
@@ -34,17 +39,6 @@ class LibraryViewController: UIViewController {
         return tableView
     }()
     
-    private let searchButton: UIButton = {
-        let image = UIImage(systemName: "magnifyingglass", withConfiguration: UIImage.SymbolConfiguration(weight: .light))?.withTintColor(.label, renderingMode: .alwaysOriginal)
-        let button = UIButton()
-        button.setImage(image, for: .normal)
-        button.imageView?.contentMode = .scaleAspectFit
-        button.contentHorizontalAlignment = .fill
-        button.contentVerticalAlignment = .fill
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     private let addButton: UIButton = {
         let image = UIImage(systemName: "plus", withConfiguration: UIImage.SymbolConfiguration(weight: .regular))?.withTintColor(.label, renderingMode: .alwaysOriginal)
         let button = UIButton()
@@ -52,6 +46,22 @@ class LibraryViewController: UIViewController {
         button.imageView?.contentMode = .scaleAspectFit
         button.contentHorizontalAlignment = .fill
         button.contentVerticalAlignment = .fill
+        button.addTarget(self, action: #selector(createNewPlaylist(_:)), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private let allButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("All", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        button.backgroundColor = .spotifyGreen
+        button.setTitleColor(.black, for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
+        button.tag = 0
+        button.isSelected = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -63,6 +73,24 @@ class LibraryViewController: UIViewController {
         button.backgroundColor = .filterBackground
         button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
         button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
+        button.tag = 1
+        button.isSelected = false
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    
+    private let artistsButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Artists", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        button.backgroundColor = .filterBackground
+        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
+        button.tag = 2
+        button.isSelected = false
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -74,41 +102,34 @@ class LibraryViewController: UIViewController {
         button.backgroundColor = .filterBackground
         button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
         button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
+        button.tag = 3
+        button.isSelected = false
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    private let artistsButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Artists", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-        button.backgroundColor = .filterBackground
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 15, bottom: 7, right: 15)
-        button.layer.masksToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
         setupTableView()
         setupHeaderView()
-        fetchData()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         setupAddButton()
-        setupSearchButton()
+        setupAllButton()
         setupPlaylistsButton()
-        setupAlbumsButton()
         setupArtistsButton()
+        setupAlbumsButton()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.isHidden = true
+        fetchData()
     }
     
     private func setupNavigationBar() {
@@ -135,6 +156,7 @@ class LibraryViewController: UIViewController {
     private func setupHeaderView() {
         view.addSubview(headerView)
         
+        headerView.delegate = self
         headerView.setTitle(title: "Your Library")
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.layer.shadowColor = UIColor(red: 17/255, green: 17/255, blue: 17/255, alpha: 1.0).cgColor
@@ -148,10 +170,10 @@ class LibraryViewController: UIViewController {
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
         
         headerView.addSubview(addButton)
-        headerView.addSubview(searchButton)
+        headerView.addSubview(allButton)
         headerView.addSubview(playlistsButton)
-        headerView.addSubview(albumsButton)
         headerView.addSubview(artistsButton)
+        headerView.addSubview(albumsButton)
     }
     
     private func setupAddButton() {
@@ -168,23 +190,20 @@ class LibraryViewController: UIViewController {
         }
     }
     
-    private func setupSearchButton() {
-        let top = searchButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 10)
-        let trailing = searchButton.trailingAnchor.constraint(equalTo: addButton.leadingAnchor, constant: -10)
+    private func setupAllButton() {
+        let bottom = allButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10)
+        let leading = allButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 10)
         
-        NSLayoutConstraint.activate([top, trailing])
+        NSLayoutConstraint.activate([bottom, leading])
         
-        if headerView.frame.height != 0 {
-            let height = searchButton.heightAnchor.constraint(equalToConstant: headerView.frame.height/4)
-            let width = searchButton.widthAnchor.constraint(equalToConstant: headerView.frame.height/4)
-            
-            NSLayoutConstraint.activate([width, height])
+        if allButton.frame.height != 0 {
+            allButton.layer.cornerRadius = allButton.frame.height/2
         }
     }
     
     private func setupPlaylistsButton() {
         let bottom = playlistsButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10)
-        let leading = playlistsButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 10)
+        let leading = playlistsButton.leadingAnchor.constraint(equalTo: allButton.trailingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([bottom, leading])
         
@@ -193,20 +212,9 @@ class LibraryViewController: UIViewController {
         }
     }
     
-    private func setupAlbumsButton() {
-        let bottom = albumsButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10)
-        let leading = albumsButton.leadingAnchor.constraint(equalTo: playlistsButton.trailingAnchor, constant: 10)
-        
-        NSLayoutConstraint.activate([bottom, leading])
-        
-        if albumsButton.frame.height != 0 {
-            albumsButton.layer.cornerRadius = albumsButton.frame.height/2
-        }
-    }
-    
     private func setupArtistsButton() {
         let bottom = artistsButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10)
-        let leading = artistsButton.leadingAnchor.constraint(equalTo: albumsButton.trailingAnchor, constant: 10)
+        let leading = artistsButton.leadingAnchor.constraint(equalTo: playlistsButton.trailingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([bottom, leading])
         
@@ -215,13 +223,25 @@ class LibraryViewController: UIViewController {
         }
     }
     
-    private func fetchData() {
+    private func setupAlbumsButton() {
+        let bottom = albumsButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10)
+        let leading = albumsButton.leadingAnchor.constraint(equalTo: artistsButton.trailingAnchor, constant: 10)
         
+        NSLayoutConstraint.activate([bottom, leading])
+        
+        if albumsButton.frame.height != 0 {
+            albumsButton.layer.cornerRadius = albumsButton.frame.height/2
+        }
+    }
+    
+    private func fetchData() {
         var usersPlaylists = [Playlist]()
         var usersArtists = [Artist]()
         var usersAlbums = [Album]()
+        var user: User?
         
         let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
         dispatchGroup.enter()
         dispatchGroup.enter()
         dispatchGroup.enter()
@@ -264,7 +284,23 @@ class LibraryViewController: UIViewController {
                 }
         }
         
+        NetworkManager.shared.getCurrentUserProfile { result in
+            defer {
+                dispatchGroup.leave()
+            }
+            
+            switch result {
+                case .success(let requestedUser):
+                    user = requestedUser
+                case .failure(let error):
+                    print(error)
+            }
+        }
+        
         dispatchGroup.notify(queue: .main) {
+            self.currentUser = user
+            self.headerView.setProfilePicture(urlString: self.currentUser?.images.first?.url, username: self.currentUser?.display_name)
+            self.sections = [LibrarySectionType]()
             self.configureSectionsData(loadedPlaylists: usersPlaylists, loadedArtists: usersArtists, loadedAlbums: usersAlbums)
         }
     }
@@ -278,15 +314,80 @@ class LibraryViewController: UIViewController {
         sections.append(.savedArtists(savedArtists: loadedArtists))
         sections.append(.savedAlbums(savedAlbums: loadedAlbums))
         
+        numberOfPlaylists = loadedPlaylists.count
+        numberOfArtists = loadedArtists.count
+        numberOfAlbums = loadedAlbums.count
+        
         tableView.reloadData()
     }
     
-    @objc private func filterButtonTapped(sender _: UIButton) {
+    @objc private func filterButtonTapped(_ sender: UIButton) {
+        let buttons = [allButton, playlistsButton, artistsButton, albumsButton]
         
+        buttons.forEach { button in
+            button.isSelected = button.tag == sender.tag ? true : false;
+            button.backgroundColor = button.tag == sender.tag ? .spotifyGreen : .filterBackground
+            button.setTitleColor(button.tag == sender.tag ? .black : .white, for: .normal)
+        }
+        
+        switch sender.tag {
+            case 0:
+                numberOfPlaylists = sender.isSelected ? playlists.count : 0
+                numberOfArtists = sender.isSelected ? artists.count : 0
+                numberOfAlbums = sender.isSelected ? albums.count : 0
+            case 1:
+                numberOfPlaylists = sender.isSelected ? playlists.count : 0
+                numberOfArtists = 0
+                numberOfAlbums = 0
+            case 2:
+                numberOfPlaylists = 0
+                numberOfArtists = sender.isSelected ? artists.count : 0
+                numberOfAlbums = 0
+            case 3:
+                numberOfPlaylists = 0
+                numberOfArtists = 0
+                numberOfAlbums = sender.isSelected ? albums.count : 0
+            default:
+                break
+        }
+        
+        tableView.reloadData()
+    }
+    
+    @objc private func createNewPlaylist(_ sender: UIButton) {
+        let alert = UIAlertController(title: "Create new playlist", message: nil, preferredStyle: .alert)
+        
+        var playlistNameTextField = UITextField()
+        
+        let action = UIAlertAction(title: "Create", style: .default) { action in
+            guard let textField = alert.textFields?.first, let text = textField.text, !text.trimmingCharacters(in: .whitespaces).isEmpty else {
+                return
+            }
+            
+            NetworkManager.shared.createPlaylist(playlistName: text) { success in
+                if success {
+                    self.fetchData()
+                }
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .destructive) { cancelAction in    }
+        
+        alert.addTextField { textField in
+            playlistNameTextField = textField
+            playlistNameTextField.placeholder = "Playlist name"
+        }
+        
+        alert.overrideUserInterfaceStyle = .dark
+        alert.addAction(cancelAction)
+        alert.addAction(action)
+        
+        present(alert, animated: true, completion: nil)
     }
 }
 
-extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
+extension LibraryViewController: UITableViewDelegate, UITableViewDataSource, MainHeaderDelegate {
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return tableView.frame.height/7-5
     }
@@ -299,12 +400,12 @@ extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
         let selectedSection = sections[section]
         
         switch selectedSection {
-        case .savedPlaylists(let playlists):
+            case .savedPlaylists(let playlists):
             return playlists.count
-        case .savedAlbums(let albums):
-            return albums.count
-        case .savedArtists(let artists):
-            return artists.count
+            case .savedAlbums(let albums):
+                return numberOfAlbums
+            case .savedArtists(let artists):
+                return numberOfArtists
         }
     }
     
@@ -340,5 +441,10 @@ extension LibraryViewController: UITableViewDelegate, UITableViewDataSource {
             let vc = AlbumViewController(album: albums[indexPath.row])
             navigationController?.pushViewController(vc, animated: true)
         }
+    }
+    
+    func openProfile(_ sender: UIButton) {
+        let vc = ProfileViewController(currentUser: currentUser)
+        navigationController?.pushViewController(vc, animated: true)
     }
 }

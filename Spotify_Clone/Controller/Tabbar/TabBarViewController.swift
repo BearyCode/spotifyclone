@@ -14,7 +14,7 @@ class TabBarViewController: UITabBarController {
     private let searchVC = SearchViewController()
     
     private let libraryVC = LibraryViewController()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabBar()

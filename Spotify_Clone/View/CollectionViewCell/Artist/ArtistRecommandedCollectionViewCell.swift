@@ -52,9 +52,6 @@ class ArtistRecommandedCollectionViewCell: UICollectionViewCell {
         let width = artistImageView.widthAnchor.constraint(equalToConstant: frame.width-20)
         let centerX = artistImageView.centerXAnchor.constraint(equalTo: centerXAnchor)
         let top = artistImageView.topAnchor.constraint(equalTo: topAnchor)
-        let trailing = artistImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
-        let bottom = artistImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
-        let leading = artistImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([centerX, top, height, width])
         

@@ -10,6 +10,8 @@ import UIKit
 class AlbumHeaderCollectionReusableView: UICollectionReusableView {
     static let identifier = "AlbumHeaderCollectionReusableView"
     
+    public weak var delegate: AlbumHeaderActionsDelegate?
+    
     private let coverImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "photo")
@@ -55,6 +57,7 @@ class AlbumHeaderCollectionReusableView: UICollectionReusableView {
         button.contentHorizontalAlignment = .fill
         button.contentVerticalAlignment = .fill
         button.clipsToBounds = true
+        button.addTarget(self, action: #selector(saveAlbum(_:)), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -67,6 +70,7 @@ class AlbumHeaderCollectionReusableView: UICollectionReusableView {
         button.contentHorizontalAlignment = .fill
         button.contentVerticalAlignment = .fill
         button.clipsToBounds = true
+        button.addTarget(self, action: #selector(playAllTracks(_:)), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -160,5 +164,13 @@ class AlbumHeaderCollectionReusableView: UICollectionReusableView {
             let url = URL(string: coverImageURL)
             coverImageView.sd_setImage(with: url)
         }
+    }
+    
+    @objc private func playAllTracks(_ sender: UIButton) {
+        delegate?.playAllTracks(sender)
+    }
+    
+    @objc private func saveAlbum(_ sender: UIButton) {
+        delegate?.saveAlbum(sender)
     }
 }

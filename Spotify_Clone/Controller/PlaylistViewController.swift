@@ -32,8 +32,7 @@ class PlaylistViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        overrideUserInterfaceStyle = .dark
-        view.backgroundColor = .spotifyBackground
+        setupNavigationBar()
         setupCollectionView()
         fetchData()
     }
@@ -42,6 +41,13 @@ class PlaylistViewController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.isHidden = false
         navigationController?.navigationBar.barTintColor = .clear
+    }
+    
+    private func setupNavigationBar() {
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = .spotifyBackground
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = .white
     }
     
     private func setupCollectionView() {
@@ -79,7 +85,8 @@ class PlaylistViewController: UIViewController {
     }
 }
 
-extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewDataSource, PlaylistHeaderActionsDelegate {
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
@@ -93,6 +100,7 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
             return UICollectionReusableView()
         }
         
+        header.delegate = self
         header.setContent(description: playlist.description, owner: playlist.owner.display_name, followers: details?.followers.total ?? 0, coverImageURL: playlist.images.first?.url)
         
         return header
@@ -106,5 +114,26 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
         }
         
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let track = tracks[indexPath.row]
+        let vc = PlayerViewController(track: track, coverURLString: playlist.images.first?.url)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func playAllTracks(_ sender: UIButton) {
+        let vc = PlayerViewController(tracks: tracks, coverURLString: playlist.images.first?.url)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func savePlaylist(_ sender: UIButton) {
+        NetworkManager.shared.savePlaylist(playlist: playlist) { success in
+            if success {
+                print("\(self.playlist.name) added")
+            } else {
+                print("Failed")
+            }
+        }
     }
 }

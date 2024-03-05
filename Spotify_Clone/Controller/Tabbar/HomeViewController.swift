@@ -14,10 +14,11 @@ enum HomeSectionType {
 }
 
 class HomeViewController: UIViewController {
-    
+
     private var playlists: [Playlist] = []
     private var albums: [Album] = []
     private var tracks: [Track] = []
+    private var currentUser: User? = nil
     
     private let headerView = MainViewControllerHeaderView()
     
@@ -125,6 +126,7 @@ class HomeViewController: UIViewController {
     private func setupHeaderView() {
         view.addSubview(headerView)
         
+        headerView.delegate = self
         headerView.setTitle(title: "")
         headerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -140,8 +142,10 @@ class HomeViewController: UIViewController {
         var featurePlaylist: FeaturedPlaylist?
         var newReleasedAlbums: NewReleases?
         var recommendedTracks: CustomTracksResponse?
+        var user: User?
         
         let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
         dispatchGroup.enter()
         dispatchGroup.enter()
         dispatchGroup.enter()
@@ -202,10 +206,27 @@ class HomeViewController: UIViewController {
             }
         }
         
+        NetworkManager.shared.getCurrentUserProfile { result in
+            defer {
+                dispatchGroup.leave()
+            }
+            
+            switch result {
+                case .success(let requestedUser):
+                    user = requestedUser
+                case .failure(let error):
+                    print(error)
+            }
+        }
+        
         dispatchGroup.notify(queue: .main) {
-            guard let featPlaylists = featurePlaylist?.playlists.items, let newAlbums = newReleasedAlbums?.albums.items, let recomTracks = recommendedTracks?.tracks else {
+            guard let featPlaylists = featurePlaylist?.playlists.items, let newAlbums = newReleasedAlbums?.albums.items, let recomTracks = recommendedTracks?.tracks, let user = user else {
                 return
             }
+            
+            self.currentUser = user
+            self.headerView.setProfilePicture(urlString: self.currentUser?.images.first?.url, username: self.currentUser?.display_name)
+            
             self.configureSectionsData(loadedPlaylists: featPlaylists, loadedAlbums: newAlbums, loadedTracks: recomTracks)
         }
         
@@ -226,7 +247,7 @@ class HomeViewController: UIViewController {
     
 }
 
-extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource, MainHeaderDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let selectedSection = sections[section]
         
@@ -292,22 +313,21 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         switch section {
         case .featuredPlaylists:
             let featPlaylist = playlists[indexPath.row]
-            var vc = PlaylistViewController(playlist: featPlaylist)
-//            vc.modalPresentationStyle = .popover
-//            present(vc, animated: true)
-            
+            let vc = PlaylistViewController(playlist: featPlaylist)
             navigationController?.pushViewController(vc, animated: true)
         case .newReleases:
             let newAlbum = albums[indexPath.row]
             let vc = AlbumViewController(album: newAlbum)
-//            vc.modalPresentationStyle = .popover
-//            present(vc, animated: true)
             navigationController?.pushViewController(vc, animated: true)
-        default:
-            print("Play song")
-//            var test = ArtistViewController()
-//            test.modalPresentationStyle = .popover
-//            present(test, animated: true)
+        case .recommendedTracks:
+            let recomTrack = tracks[indexPath.row]
+            let vc = PlayerViewController(track: recomTrack, coverURLString: recomTrack.album?.images.first?.url)
+            navigationController?.pushViewController(vc, animated: true)
         }
+    }
+    
+    func openProfile(_ sender: UIButton) {
+        let vc = ProfileViewController(currentUser: currentUser)
+        navigationController?.pushViewController(vc, animated: true)
     }
 }

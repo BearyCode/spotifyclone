@@ -32,8 +32,7 @@ class AlbumViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        overrideUserInterfaceStyle = .dark
-        view.backgroundColor = .spotifyBackground
+        setupNavigationBar()
         setupCollectionView()
         getAllTracks()
     }
@@ -42,6 +41,13 @@ class AlbumViewController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.isHidden = false
         navigationController?.navigationBar.barTintColor = .clear
+    }
+    
+    private func setupNavigationBar() {
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = .spotifyBackground
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = .white
     }
     
     private func setupCollectionView() {
@@ -105,9 +111,12 @@ class AlbumViewController: UIViewController {
         
         return "\(correctedType)"
     }
+    
+    
 }
 
-extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource, AlbumHeaderActionsDelegate {
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
@@ -121,6 +130,7 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
             return UICollectionReusableView()
         }
         
+        header.delegate = self
         header.setContent(albumTitle: album.name, artistName: album.artists.first!.name, typeYear: formatTypeYear(type: album.album_type, date: album.release_date), coverImageURL: album.images.first?.url)
         
         return header
@@ -134,5 +144,26 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
         }
         
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let track = tracks[indexPath.row]
+        let vc = PlayerViewController(track: track, coverURLString: album.images.first?.url)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func playAllTracks(_ sender: UIButton) {
+        let vc = PlayerViewController(tracks: tracks, coverURLString: album.images.first?.url)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func saveAlbum(_ sender: UIButton) {
+        NetworkManager.shared.saveAlbum(album: album) { success in
+            if success {
+                print("\(self.album.name) added!")
+            } else {
+                print("Failed")
+            }
+        }
     }
 }

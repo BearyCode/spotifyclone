@@ -7,7 +7,11 @@
 
 import UIKit
 
-class MainViewControllerHeaderView: UIView {
+class MainViewControllerHeaderView: UIView, MainHeaderDelegate {
+    
+    public weak var delegate: MainHeaderDelegate?
+    
+    private let colors = [UIColor.systemRed, UIColor.systemBlue, UIColor.systemBrown, UIColor.systemGray, UIColor.green]
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -24,6 +28,8 @@ class MainViewControllerHeaderView: UIView {
         button.backgroundColor = .systemBrown
         button.translatesAutoresizingMaskIntoConstraints = false
         button.clipsToBounds = true
+        button.setTitleColor(.black, for: .normal)
+        button.addTarget(self, action: #selector(openProfile(_:)), for: .touchUpInside)
         return button
     }()
     
@@ -83,5 +89,18 @@ class MainViewControllerHeaderView: UIView {
         } else {
             titleLabel.text = title
         }
+    }
+    
+    public func setProfilePicture(urlString: String?, username: String?) {
+        if let urlString = urlString, !urlString.isEmpty, let url = URL(string: urlString) {
+            profileButton.sd_setImage(with: url, for: .normal)
+        } else if let username = username, let firstChar = username.first {
+            profileButton.setTitle("\(firstChar)", for: .normal)
+        }
+        
+    }
+    
+    @objc func openProfile(_ sender: UIButton) {
+        delegate?.openProfile(sender)
     }
 }

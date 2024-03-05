@@ -16,6 +16,8 @@ enum SearchResultSectionType {
 
 class SearchResultViewController: UIViewController {
     
+    private var searchQuery: String?
+    
     private var sections = [SearchResultSectionType]()
     
     private let searchController: UISearchController = {
@@ -40,11 +42,21 @@ class SearchResultViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
-
+    
+    init(searchQuery: String?) {
+        self.searchQuery = searchQuery
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
         setupTableView()
+        fetchData(searchQuery)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -78,16 +90,30 @@ class SearchResultViewController: UIViewController {
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
     }
     
-    func fetchData(_ searchResults: SearchResultResponse) {
+    func fetchData(_ searchQuery: String?) {//(_ searchResults: SearchResultResponse) {
+        
+        guard let query = searchQuery, !query.isEmpty else {
+            return
+        }
+        
+        let cleanedQuery = query.trimmingCharacters(in: .whitespaces)
         sections = [SearchResultSectionType]()
         
-        sections.append(.track(tracks: searchResults.tracks.items))
-        sections.append(.artist(artists: searchResults.artists.items))
-        sections.append(.album(albums: searchResults.albums.items))
-        sections.append(.playlist(playlists: searchResults.playlists.items))
-        tableView.reloadData()
+        NetworkManager.shared.getSearchResults(query: cleanedQuery) { result in
+            DispatchQueue.main.async {
+                switch result {
+                    case .success(let searchResult):
+                        self.sections.append(.track(tracks: searchResult.tracks.items))
+                        self.sections.append(.artist(artists: searchResult.artists.items))
+                        self.sections.append(.album(albums: searchResult.albums.items))
+                        self.sections.append(.playlist(playlists: searchResult.playlists.items))
+                        self.tableView.reloadData()
+                    case .failure(let error):
+                        print(error)
+                }
+            }
+        }
     }
-
 }
 
 extension SearchResultViewController: UITableViewDelegate, UITableViewDataSource {
@@ -115,6 +141,21 @@ extension SearchResultViewController: UITableViewDelegate, UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        let sec = sections[section]
+        
+        switch sec {
+        case .track:
+            return "Songs"
+        case .artist:
+            return "Artists"
+        case .album:
+            return "Albums"
+        case .playlist:
+            return " Playlists"
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -165,20 +206,6 @@ extension SearchResultViewController: UITableViewDelegate, UITableViewDataSource
 
 extension SearchResultViewController: UISearchControllerDelegate, UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        guard let query = searchController.searchBar.text, !query.isEmpty else {
-            return
-        }
-        let cleanedQuery = query.trimmingCharacters(in: .whitespaces)
-        
-        NetworkManager.shared.getSearchResults(query: cleanedQuery) { result in
-            DispatchQueue.main.async {
-                switch result {
-                    case .success(let searchResult):
-                        self.fetchData(searchResult)
-                    case .failure(let error):
-                        print(error)
-                }
-            }
-        }
+        fetchData(searchController.searchBar.text)
     }
 }

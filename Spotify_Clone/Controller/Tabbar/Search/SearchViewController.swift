@@ -10,6 +10,7 @@ import UIKit
 class SearchViewController: UIViewController {
     
     private var categories = [Category]()
+    private var currentUser: User? = nil
     
     private let headerView = MainViewControllerHeaderView()
     private let containerView: UIView = {
@@ -60,6 +61,7 @@ class SearchViewController: UIViewController {
     private func setupHeaderView() {
         view.addSubview(headerView)
         
+        headerView.delegate = self
         headerView.setTitle(title: "Search")
         headerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -100,40 +102,53 @@ class SearchViewController: UIViewController {
     }
     
     private func fetchData() {
+        var loadedCategories: [Category]?
+        var user: User?
+        
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        dispatchGroup.enter()
+        
         NetworkManager.shared.getCategories { result in
-            DispatchQueue.main.async {
-                switch result {
+            defer {
+                dispatchGroup.leave()
+            }
+            switch result {
                 case .success(let requestedCategories):
-                    self.categories = requestedCategories
-                    self.collectionView.reloadData()
+                    loadedCategories = requestedCategories
                 case .failure(let error):
                     print(error.localizedDescription)
-                }
             }
+        }
+        
+        NetworkManager.shared.getCurrentUserProfile { result in
+            defer {
+                dispatchGroup.leave()
+            }
+            
+            switch result {
+                case .success(let requestedUser):
+                    user = requestedUser
+                case .failure(let error):
+                    print(error)
+            }
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            if let loadedCategories = loadedCategories {
+                self.categories = loadedCategories
+            }
+            
+            self.currentUser = user
+            self.headerView.setProfilePicture(urlString: self.currentUser?.images.first?.url, username: self.currentUser?.display_name)
+            self.collectionView.reloadData()
         }
     }
 }
 
-extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
+extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate, MainHeaderDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let query = searchBar.text else {
-            return
-        }
-        
-        let cleanedQuery = query.trimmingCharacters(in: .whitespaces)
-        
-        let vc = SearchResultViewController()
-        
-        NetworkManager.shared.getSearchResults(query: cleanedQuery) { result in
-            DispatchQueue.main.async {
-                switch result {
-                    case .success(let searchResult):
-                        vc.fetchData(searchResult)
-                    case .failure(let error):
-                        print(error)
-                }
-            }
-        }
+        let vc = SearchResultViewController(searchQuery: searchBar.text)
         navigationController?.pushViewController(vc, animated: true)
     }
     
@@ -150,6 +165,11 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let vc = CategoryViewController(category: categories[indexPath.row])
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func openProfile(_ sender: UIButton) {
+        let vc = ProfileViewController(currentUser: currentUser)
         navigationController?.pushViewController(vc, animated: true)
     }
 }

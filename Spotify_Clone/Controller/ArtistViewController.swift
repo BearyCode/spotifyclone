@@ -64,7 +64,7 @@ class ArtistViewController: UIViewController {
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(50)), subitem: item, count: 1)
             let section = NSCollectionLayoutSection(group: group)
-            section.boundarySupplementaryItems = [NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(1.0)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)]
+            section.boundarySupplementaryItems = [NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(0.75)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)]
             return section
             
         case 1:
@@ -313,9 +313,9 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
         
         switch section {
         case .popularTracks(popularTracks: let tracks):
-            // let vc = PlaylistViewController(playlist: playlists[indexPath.row])
-            // navigationController?.pushViewController(vc, animated: true)
-            print("Play track")
+            let track = tracks[indexPath.row]
+            let vc = PlayerViewController(track: track, coverURLString: track.album?.images.first?.url)
+            navigationController?.pushViewController(vc, animated: true)
         case .albums(albums: let albums):
             let vc = AlbumViewController(album: albums[indexPath.row])
             navigationController?.pushViewController(vc, animated: true)

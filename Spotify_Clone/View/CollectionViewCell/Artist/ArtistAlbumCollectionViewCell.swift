@@ -82,7 +82,6 @@ class ArtistAlbumCollectionViewCell: UICollectionViewCell {
         
         let top = typeYearLabel.topAnchor.constraint(equalTo: albumNameLabel.bottomAnchor)
         let trailing = typeYearLabel.trailingAnchor.constraint(equalTo: trailingAnchor)
-        let bottom = typeYearLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
         let leading = typeYearLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([top, trailing, leading])

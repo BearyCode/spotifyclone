@@ -60,6 +60,7 @@ class NetworkManager {
     private var isRefreshingToken = false
     
     private init() {
+            
     }
     
     private func saveToken(authResponse: AuthorizationResponse) {
@@ -184,9 +185,9 @@ class NetworkManager {
         }
     }
     
-    public func logout() {
-        UserDefaults.standard.setValue(nil, forKey: "access_token")
-        UserDefaults.standard.setValue(nil, forKey: "refresh_token")
+    public func logout(completion: (Bool) -> Void) {
+        UserDefaults.standard.setValue(nil, forKey: "accessToken")
+        UserDefaults.standard.setValue(nil, forKey: "refreshToken")
         UserDefaults.standard.setValue(nil, forKey: "expirationDate")
     }
     
@@ -478,6 +479,90 @@ class NetworkManager {
                 }
             }
             task.resume()
+        }
+    }
+    
+    public func getCurrentUserProfile(completion: @escaping (Result<User, Error>) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/me"), type: .GET) { baseRequest in
+            let task = URLSession.shared.dataTask(with: baseRequest) { data, _, error in
+                guard let data = data, error == nil else {
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(User.self, from: data)
+                    completion(.success(result))
+                }
+                catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func saveAlbum(album: Album, completion: @escaping (Bool) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/me/albums?ids=\(album.id)"), type: .PUT) { request in
+            var req = request
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let task = URLSession.shared.dataTask(with: req) { data, response, error in
+                guard let data = data, let statusCode = (response as? HTTPURLResponse)?.statusCode, error == nil else {
+                    return
+                }
+                
+                completion(statusCode == 200)
+            }
+            task.resume()
+        }
+    }
+    
+    public func savePlaylist(playlist: Playlist, completion: @escaping (Bool) -> Void) {
+        createAPIRequest(url: URL(string: "https://api.spotify.com/v1/playlists/\(playlist.id)/followers"), type: .PUT) { request in
+            var req = request
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let task = URLSession.shared.dataTask(with: req) { data, response, error in
+                guard let data = data, let statusCode = (response as? HTTPURLResponse)?.statusCode, error == nil else {
+                    return
+                }
+                
+                completion(statusCode == 200)
+            }
+            task.resume()
+        }
+    }
+    
+    public func createPlaylist(playlistName: String, completion: @escaping (Bool) -> Void) {
+        getCurrentUserProfile { result in
+            switch result {
+            case .success(let user):
+                self.createAPIRequest(url: URL(string: "https://api.spotify.com/v1/users/\(user.id)/playlists"), type: .POST) { request in
+                    var req = request
+                    let json = ["name": playlistName]
+                    req.httpBody = try? JSONSerialization.data(withJSONObject: json, options: .fragmentsAllowed)
+                    
+                    let task = URLSession.shared.dataTask(with: req) { data, response, error in
+                        guard let data = data, error == nil else {
+                            return
+                        }
+                        
+                        do {
+                            let result = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+                            if let response = result as? [String: Any], response["id"] as? String != nil {
+                                completion(true)
+                            } else {
+                                completion(false)
+                            }
+                        } catch {
+                            completion(false)
+                        }
+                    }
+                    task.resume()
+                }
+            case .failure(let error):
+                print(error)
+            }
         }
     }
 }

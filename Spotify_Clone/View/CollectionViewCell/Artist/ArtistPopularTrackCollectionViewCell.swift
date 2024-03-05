@@ -41,18 +41,6 @@ class ArtistPopularTrackCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-    private let menuButton: UIButton = {
-        let image = UIImage(systemName: "ellipsis", withConfiguration: UIImage.SymbolConfiguration(weight: .light))?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
-        let button = UIButton()
-        button.setImage(image, for: .normal)
-        button.imageView?.contentMode = .scaleAspectFit
-        button.contentHorizontalAlignment = .fill
-        button.contentVerticalAlignment = .fill
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -71,7 +59,6 @@ class ArtistPopularTrackCollectionViewCell: UICollectionViewCell {
         setupNumberLabel()
         setupCoverImageView()
         setupTitleLabel()
-        setupMenuButton()
     }
     
     private func setupCoverImageView() {
@@ -80,8 +67,6 @@ class ArtistPopularTrackCollectionViewCell: UICollectionViewCell {
         let height = coverImageView.heightAnchor.constraint(equalToConstant: contentView.frame.height-10)
         let width = coverImageView.widthAnchor.constraint(equalToConstant: contentView.frame.height-10)
         let centerY = coverImageView.centerYAnchor.constraint(equalTo: centerYAnchor)
-        let top = coverImageView.topAnchor.constraint(equalTo: topAnchor, constant: 5)
-        let bottom = coverImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5)
         let leading = coverImageView.leadingAnchor.constraint(equalTo: numberLabel.trailingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([height, width, centerY, leading])
@@ -101,15 +86,6 @@ class ArtistPopularTrackCollectionViewCell: UICollectionViewCell {
         
         let centerY = titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         let trailing = titleLabel.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: 10)
-        
-        NSLayoutConstraint.activate([centerY, trailing])
-    }
-    
-    private func setupMenuButton() {
-        addSubview(menuButton)
-        
-        let centerY = menuButton.centerYAnchor.constraint(equalTo: centerYAnchor)
-        let trailing = menuButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
         
         NSLayoutConstraint.activate([centerY, trailing])
     }

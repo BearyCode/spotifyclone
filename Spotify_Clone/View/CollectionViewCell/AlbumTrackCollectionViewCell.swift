@@ -10,14 +10,6 @@ import UIKit
 class AlbumTrackCollectionViewCell: UICollectionViewCell {
     static let identifier = "AlbumTrackCollectionViewCell"
     
-    private let likeImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "heart.fill", withConfiguration: UIImage.SymbolConfiguration(weight: .light))?.withTintColor(.spotifyGreen, renderingMode: .alwaysOriginal)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Song Title"
@@ -40,18 +32,6 @@ class AlbumTrackCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-    private let menuButton: UIButton = {
-        let image = UIImage(systemName: "ellipsis", withConfiguration: UIImage.SymbolConfiguration(weight: .light))?.withTintColor(.systemGray, renderingMode: .alwaysOriginal)
-        let button = UIButton()
-        button.setImage(image, for: .normal)
-        button.imageView?.contentMode = .scaleAspectFit
-        button.contentHorizontalAlignment = .fill
-        button.contentVerticalAlignment = .fill
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -65,8 +45,6 @@ class AlbumTrackCollectionViewCell: UICollectionViewCell {
         backgroundColor = .clear
         setupTitleLabel()
         setupArtistLabel()
-        setupMenuButton()
-        setupLikeImageView()
     }
     
     private func setupTitleLabel() {
@@ -88,24 +66,6 @@ class AlbumTrackCollectionViewCell: UICollectionViewCell {
         let leading = artistLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
-    }
-    
-    private func setupMenuButton() {
-        addSubview(menuButton)
-        
-        let centerY = menuButton.centerYAnchor.constraint(equalTo: centerYAnchor)
-        let trailing = menuButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
-        
-        NSLayoutConstraint.activate([centerY, trailing])
-    }
-    
-    private func setupLikeImageView() {
-        addSubview(likeImageView)
-        
-        let centerY = likeImageView.centerYAnchor.constraint(equalTo: centerYAnchor)
-        let trailing = likeImageView.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -20)
-        
-        NSLayoutConstraint.activate([centerY, trailing])
     }
     
     public func setContent(title: String, artist: String?) {

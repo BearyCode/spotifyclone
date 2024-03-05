@@ -69,7 +69,7 @@ class NewReleasedAlbumCollectionViewCell: UICollectionViewCell {
         
         let top = coverImageView.topAnchor.constraint(equalTo: contentView.topAnchor)
         let trailing = coverImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
-        let bottom = coverImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30)
+        let bottom = coverImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
         let leading = coverImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10)
         
         NSLayoutConstraint.activate([top, trailing, bottom, leading])
@@ -78,7 +78,7 @@ class NewReleasedAlbumCollectionViewCell: UICollectionViewCell {
     private func setupContainerView() {
         contentView.addSubview(containerView)
         
-        let top = containerView.topAnchor.constraint(equalTo: coverImageView.bottomAnchor)
+        let top = containerView.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 5)
         let trailing = containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         let bottom = containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         let leading = containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10)
@@ -99,7 +99,7 @@ class NewReleasedAlbumCollectionViewCell: UICollectionViewCell {
     private func setupArtistLabel() {
         contentView.addSubview(artistLabel)
         
-        let top = artistLabel.topAnchor.constraint(equalTo: albumNameLabel.bottomAnchor)
+        let top = artistLabel.topAnchor.constraint(equalTo: albumNameLabel.bottomAnchor, constant: 5)
         let trailing = artistLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
         let bottom = artistLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         let leading = artistLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor)

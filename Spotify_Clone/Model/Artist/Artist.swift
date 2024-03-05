@@ -9,8 +9,8 @@ import Foundation
 
 struct Artist: Codable {
     let external_urls: [String: String]
-//    let followers: Follower
     let id: String
     var images: [Image]?
     let name: String
 }
+

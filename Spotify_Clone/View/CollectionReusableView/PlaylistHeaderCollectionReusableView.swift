@@ -10,6 +10,8 @@ import UIKit
 class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
     static let identifier = "PlaylistHeaderCollectionReusableView"
     
+    public weak var delegate: PlaylistHeaderActionsDelegate?
+    
     private let coverImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "photo")
@@ -60,6 +62,7 @@ class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
         button.contentHorizontalAlignment = .fill
         button.contentVerticalAlignment = .fill
         button.clipsToBounds = true
+        button.addTarget(self, action: #selector(savePlaylist(_:)), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -72,6 +75,7 @@ class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
         button.contentHorizontalAlignment = .fill
         button.contentVerticalAlignment = .fill
         button.clipsToBounds = true
+        button.addTarget(self, action: #selector(playAllTracks(_:)), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -159,25 +163,22 @@ class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
         NSLayoutConstraint.activate([height, width, top, trailing])
     }
     
-    private func followerNumberFormatter(followerNumber: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        
-        if let formattedNumber = formatter.string(from: NSNumber(value: followerNumber)) {
-            return formattedNumber
-        }
-        
-        return ""
-    }
-    
     public func setContent(description: String, owner: String, followers: Int, coverImageURL: String?) {
         descriptionLabel.text = description
         ownerLabel.text = owner
-        followersLabel.text = followers != 0 ? "\(followerNumberFormatter(followerNumber: followers)) saves" : ""
+        followersLabel.text = followers != 0 ? "\(Globals.shared.followerNumberFormatter(followerNumber: followers)) saves" : ""
         
         if let coverImageURL = coverImageURL {
             let url = URL(string: coverImageURL)
             coverImageView.sd_setImage(with: url)
         }
+    }
+    
+    @objc private func playAllTracks(_ sender: UIButton) {
+        delegate?.playAllTracks(sender)
+    }
+    
+    @objc private func savePlaylist(_ sender: UIButton) {
+        delegate?.savePlaylist(sender)
     }
 }
