@@ -18,10 +18,10 @@ class NetworkManager {
     
     static let shared = NetworkManager()
     
-    private let clientID = "c2dc2d96c5c94d7cae51af547feafeeb"
-    private let clientSecret = "5d0513598b3d4603b71ec865b196e034"
+    private let clientID = "ADD CLIENT ID"
+    private let clientSecret = "ADD CLIENT SECRET"
     private let scope = "user-read-private%20playlist-modify-public%20playlist-read-private%20playlist-modify-private%20user-follow-read%20user-library-modify%20user-library-read%20user-read-email"
-    private let redirectURI = "https://www.bearycode.com"
+    private let redirectURI = "ADD URL"
     private let tokenURL = "https://accounts.spotify.com/api/token"
     
     private var apiURL = "https://api.spotify.com/v1"
