@@ -8,6 +8,8 @@
 import Foundation
 
 struct Globals {
+    
+    static let shared = Globals()
 
     public func followerNumberFormatter(followerNumber: Int) -> String {
         let formatter = NumberFormatter()
