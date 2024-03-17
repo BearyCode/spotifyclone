@@ -3,3 +3,5 @@
 <p>The app supports playing preview tracks and provides features to display the newest albums, playlists, and recommanded tracks.</p>
 
 Built with Swift, UIKit, Spotify Web-API, CocoaPods (SDWebImage)
+
+![home_screen](https://github.com/BearyCode/spotifyclone/blob/main/SpotifyClone_Screenshots_Frame/image1%202.jpeg?raw=true)
