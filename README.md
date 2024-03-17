@@ -4,4 +4,7 @@
 
 Built with Swift, UIKit, Spotify Web-API, CocoaPods (SDWebImage)
 
-![home_screen](https://github.com/BearyCode/spotifyclone/blob/main/SpotifyClone_Screenshots_Frame/image1%202.jpeg?raw=true) ![home_screen](https://github.com/BearyCode/spotifyclone/blob/main/SpotifyClone_Screenshots_Frame/image1%203.jpeg?raw=true)
+<p align="center">
+  <img src="[your_relative_path_here](https://github.com/BearyCode/spotifyclone/blob/main/SpotifyClone_Screenshots_Frame/image1%202.jpeg?raw=true)" width="350" title="hover text">
+  <img src="[your_relative_path_here_number_2_large_name](https://github.com/BearyCode/spotifyclone/blob/main/SpotifyClone_Screenshots_Frame/image1%203.jpeg?raw=true)https://github.com/BearyCode/spotifyclone/blob/main/SpotifyClone_Screenshots_Frame/image1%203.jpeg?raw=true" width="350" alt="accessibility text">
+</p>
